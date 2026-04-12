@@ -1,6 +1,6 @@
 .PHONY: install build inspect inspect-docker kill-inspector
 
-run-dev:
+dev:
 	uv run medical_consilium_agent
 
 build:

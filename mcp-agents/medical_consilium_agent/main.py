@@ -4,6 +4,7 @@ from loguru import logger
 from services.consilium_service import ConsiliumService
 from services.history_client import HistoryClient
 from schemas.http import GetDoctorVisitsHistoryRequest
+from config import settings
 
 logger.add("mcp.log", rotation="10 MB")
 
@@ -39,8 +40,7 @@ async def run_medical_consilium(data: GetDoctorVisitsHistoryRequest) -> list[dic
 
 
 def run() -> None:
-    mcp.run()
-
+    mcp.run(transport="streamable-http", host=settings.mcp_host, port=settings.mcp_port)
 
 if __name__ == "__main__":
     run()

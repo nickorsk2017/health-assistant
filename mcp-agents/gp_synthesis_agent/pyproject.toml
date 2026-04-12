@@ -1,0 +1,23 @@
+[project]
+name = "gp-synthesis-agent"
+version = "0.1.0"
+description = "MCP orchestrator that synthesizes multi-specialist consilium findings into a final GP consultation."
+requires-python = ">=3.12"
+dependencies = [
+    "fastmcp>=2.0.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "langchain-openai>=0.1.0",
+    "loguru>=0.7.0",
+]
+
+[project.scripts]
+gp_synthesis_agent = "main:run"
+inspector = "main:run_inspector"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
