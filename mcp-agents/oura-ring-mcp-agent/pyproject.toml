@@ -1,0 +1,21 @@
+[project]
+name = "oura-ring-mcp-agent"
+version = "0.1.0"
+description = "MCP agent that exposes Oura Ring biometric data via a FastMCP tool."
+requires-python = ">=3.12"
+dependencies = [
+    "fastmcp>=2.0.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "openai>=1.0.0",
+]
+
+[project.scripts]
+oura-ring-mcp-agent = "main:run"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
