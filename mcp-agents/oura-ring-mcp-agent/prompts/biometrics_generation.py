@@ -38,4 +38,5 @@ def user_prompt(user_id: str, dates: list[str]) -> str:
         f"for the following dates: {dates}.\n"
         "Return a JSON object with a single key 'records' containing an array of daily entries. "
         "Each entry must match the DailyBiometrics schema exactly."
+        
     )
