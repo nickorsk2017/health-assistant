@@ -8,7 +8,8 @@ declare namespace Entity {
     | "nutrition"
     | "endocrinology"
     | "mental_health"
-    | "pulmonology";
+    | "pulmonology"
+    | "general_practitioner";
 
   type CreateVisit = {
     user_id: string;
@@ -35,5 +36,27 @@ declare namespace Entity {
   type RecordVisitResponse = {
     success: boolean;
     visit_id: string;
+  };
+
+  type VisitsByPromptRequest = {
+    user_id: string;
+    prompt: string;
+  };
+
+  type VisitsByPromptResponse = {
+    success: boolean;
+    count: number;
+  };
+
+  type UpdateVisit = {
+    visit_at: string;
+    subjective: string;
+    objective: string;
+    assessment: string;
+    plan: string;
+  };
+
+  type MutateVisitResponse = {
+    success: boolean;
   };
 }

@@ -20,6 +20,7 @@ const DOCTOR_OPTIONS = [
   { value: "endocrinology", label: "Endocrinology" },
   { value: "mental_health", label: "Mental Health" },
   { value: "pulmonology", label: "Pulmonology" },
+  { value: "general_practitioner", label: "General Practitioner" },
 ];
 
 const TODAY = new Date().toISOString().split("T")[0];

@@ -283,8 +283,6 @@ async def seed() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    print(f"Seeding {len(VISITS)} visits for patient '{USER_ID}'...\n")
-
     async with session_factory() as session:
         for i, visit_data in enumerate(VISITS, start=1):
             visit_id = uuid.uuid4()
@@ -296,13 +294,8 @@ async def seed() -> None:
                 )
             )
             await session.commit()
-            print(
-                f"  [{i:02d}/10] ✓  {visit_data['visit_at']}  "
-                f"{visit_data['doctor_type']:<22} visit_id={visit_id}"
-            )
 
     await engine.dispose()
-    print(f"\nDone. {len(VISITS)} visits inserted for user_id='{USER_ID}'.")
 
 
 def run() -> None:

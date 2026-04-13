@@ -14,6 +14,7 @@ class DoctorType(str, Enum):
     endocrinology = "endocrinology"
     mental_health = "mental_health"
     pulmonology = "pulmonology"
+    general_practitioner = "general_practitioner"
 
 def validate_not_past(visit_at: date) -> date:
     if visit_at > date.today():

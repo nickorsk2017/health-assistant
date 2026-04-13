@@ -1,17 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronDown, ChevronUp, Pencil } from "lucide-react";
 
 import Alert from "@/components/common/Alert/Alert";
 import Button from "@/components/common/Button/Button";
 import Input from "@/components/common/Input/Input";
 import Spinner from "@/components/common/Spinner/Spinner";
+import EditVisitModal from "@/components/features/history/EditVisitModal";
 import { usePatientStore } from "@/stores/usePatientStore";
 import { useVisitStore } from "@/stores/useVisitStore";
 import formatDate from "@/utils/formatDate";
 
-function VisitRow({ visit }: { visit: Entity.VisitRecord }) {
+function VisitRow({ visit, onEdit }: { visit: Entity.VisitRecord; onEdit: (v: Entity.VisitRecord) => void }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="border-b border-slate-100 last:border-0">
@@ -27,11 +28,23 @@ function VisitRow({ visit }: { visit: Entity.VisitRecord }) {
           <span className="text-sm font-medium text-slate-800">{formatDate(visit.visit_at)}</span>
           <span className="truncate text-sm text-slate-500 max-w-xs">{visit.assessment}</span>
         </div>
-        {open ? (
-          <ChevronUp className="h-4 w-4 shrink-0 text-slate-400" />
-        ) : (
-          <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
-        )}
+        <div className="flex items-center gap-2">
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => { e.stopPropagation(); onEdit(visit); }}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); onEdit(visit); } }}
+            className="rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600"
+            aria-label="Edit visit"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </span>
+          {open ? (
+            <ChevronUp className="h-4 w-4 shrink-0 text-slate-400" />
+          ) : (
+            <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
+          )}
+        </div>
       </button>
       {open && (
         <div className="grid grid-cols-2 gap-4 bg-slate-50 px-4 py-3 text-sm">
@@ -54,8 +67,16 @@ function VisitRow({ visit }: { visit: Entity.VisitRecord }) {
 
 export default function HistoryList() {
   const { selectedPatientId } = usePatientStore();
-  const { history, isFetchingHistory, error, fetchHistory, clearError } = useVisitStore();
+  const { history, isFetchingHistory, error, fetchHistory, clearError, refreshTrigger } = useVisitStore();
   const [since, setSince] = useState("2024-01-01");
+  const [editingVisit, setEditingVisit] = useState<Entity.VisitRecord | null>(null);
+
+  useEffect(() => {
+    if (refreshTrigger > 0 && selectedPatientId) {
+      fetchHistory(selectedPatientId, since);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTrigger]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -80,7 +101,7 @@ export default function HistoryList() {
       {!isFetchingHistory && history.length > 0 && (
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
           {history.map((v) => (
-            <VisitRow key={v.visit_id} visit={v} />
+            <VisitRow key={v.visit_id} visit={v} onEdit={setEditingVisit} />
           ))}
         </div>
       )}
@@ -88,6 +109,13 @@ export default function HistoryList() {
         <p className="text-center text-sm text-slate-400 py-6">
           No visits loaded. Select a date range and click "Get Patient History".
         </p>
+      )}
+      {editingVisit && (
+        <EditVisitModal
+          visit={editingVisit}
+          isOpen={!!editingVisit}
+          onClose={() => setEditingVisit(null)}
+        />
       )}
     </div>
   );

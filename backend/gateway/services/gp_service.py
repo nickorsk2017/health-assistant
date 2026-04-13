@@ -32,7 +32,6 @@ async def fetch_gp_consultation(user_id: str, start_date: str) -> GPConsultation
         raise AgentConnectionError(f"gp_synthesis_agent unreachable: {exc}") from exc
 
     data = result.structured_content or {}
-    print("Extracted data for GP consultation:", data)
 
 
     if not data:
