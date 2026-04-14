@@ -6,10 +6,10 @@ from schemas.complaint_schema import (
     CreateComplaintSchema,
     UpdateComplaintSchema,
 )
-from services.exceptions import AgentConnectionError, NoDataFoundError
+from services.agent_result import AgentResult
 
 
-async def create_complaint(data: CreateComplaintSchema) -> ComplaintRecordSchema:
+async def create_complaint(data: CreateComplaintSchema) -> AgentResult:
     try:
         async with Client(settings.complaint_manager_agent_url) as client:
             response = await client.call_tool(
@@ -22,17 +22,23 @@ async def create_complaint(data: CreateComplaintSchema) -> ComplaintRecordSchema
                     }
                 },
             )
+        raw_results = response.structured_content or {}
+        if not raw_results.get("success"):
+            return {"success": False, "data": None, "error": "complaint_manager_agent returned failure on upsert_complaint"}
+
+        complaint_id = raw_results["complaint_id"]
+        fetch_result = await fetch_complaints("")
+        if not fetch_result["success"]:
+            return fetch_result
+        complaint = next((c for c in fetch_result["data"] if c.complaint_id == complaint_id), None)
+        if not complaint:
+            return {"success": False, "data": None, "error": f"Complaint {complaint_id} not found after create"}
+        return {"success": True, "data": complaint, "error": None}
     except Exception as exc:
-        raise AgentConnectionError(f"complaint_manager_agent unreachable: {exc}") from exc
-
-    raw_payload = response.structured_content or {}
-    if not raw_payload.get("success"):
-        raise AgentConnectionError("complaint_manager_agent returned failure on upsert_complaint")
-
-    return await _fetch_single_complaint(raw_payload["complaint_id"])
+        return {"success": False, "data": None, "error": str(exc)}
 
 
-async def update_complaint(complaint_id: str, data: UpdateComplaintSchema) -> ComplaintRecordSchema:
+async def update_complaint(complaint_id: str, data: UpdateComplaintSchema) -> AgentResult:
     try:
         async with Client(settings.complaint_manager_agent_url) as client:
             response = await client.call_tool(
@@ -46,65 +52,64 @@ async def update_complaint(complaint_id: str, data: UpdateComplaintSchema) -> Co
                     }
                 },
             )
+        raw_results = response.structured_content or {}
+        if not raw_results.get("success"):
+            return {"success": False, "data": None, "error": f"Complaint {complaint_id} not found"}
+
+        fetch_result = await fetch_complaints("")
+        if not fetch_result["success"]:
+            return fetch_result
+        complaint = next((c for c in fetch_result["data"] if c.complaint_id == complaint_id), None)
+        if not complaint:
+            return {"success": False, "data": None, "error": f"Complaint {complaint_id} not found after update"}
+        return {"success": True, "data": complaint, "error": None}
     except Exception as exc:
-        raise AgentConnectionError(f"complaint_manager_agent unreachable: {exc}") from exc
-
-    raw_payload = response.structured_content or {}
-    if not raw_payload.get("success"):
-        raise NoDataFoundError(f"Complaint {complaint_id} not found")
-
-    return await _fetch_single_complaint(complaint_id)
+        return {"success": False, "data": None, "error": str(exc)}
 
 
-async def _fetch_single_complaint(complaint_id: str) -> ComplaintRecordSchema:
-    complaints_list = await fetch_complaints("")
-    match = next((c for c in complaints_list if c.complaint_id == complaint_id), None)
-    if not match:
-        raise NoDataFoundError(f"Complaint {complaint_id} not found after upsert")
-    return match
-
-
-async def fetch_complaints(user_id: str) -> list[ComplaintRecordSchema]:
+async def fetch_complaints(user_id: str) -> AgentResult:
     try:
         async with Client(settings.complaint_manager_agent_url) as client:
             response = await client.call_tool(
                 "get_complaints",
                 {"data": {"user_id": user_id}},
             )
+        raw_results = response.structured_content
+        complaints_collection = raw_results if isinstance(raw_results, list) else []
+        return {
+            "success": True,
+            "data": [ComplaintRecordSchema(**complaint) for complaint in complaints_collection],
+            "error": None,
+        }
     except Exception as exc:
-        raise AgentConnectionError(f"complaint_manager_agent unreachable: {exc}") from exc
-
-    raw_payload = response.structured_content
-    complaints_list = raw_payload if isinstance(raw_payload, list) else []
-
-    return [ComplaintRecordSchema(**complaint) for complaint in complaints_list]
+        return {"success": False, "data": [], "error": str(exc)}
 
 
-async def mark_complaint_read(complaint_id: str) -> None:
+async def mark_complaint_read(complaint_id: str) -> AgentResult:
     try:
         async with Client(settings.complaint_manager_agent_url) as client:
             response = await client.call_tool(
                 "mark_as_read",
                 {"data": {"complaint_id": complaint_id}},
             )
+        raw_results = response.structured_content or {}
+        if not raw_results.get("success"):
+            return {"success": False, "data": None, "error": raw_results.get("error", f"Complaint {complaint_id} not found")}
+        return {"success": True, "data": None, "error": None}
     except Exception as exc:
-        raise AgentConnectionError(f"complaint_manager_agent unreachable: {exc}") from exc
-
-    raw_payload = response.structured_content or {}
-    if not raw_payload.get("success"):
-        raise NoDataFoundError(raw_payload.get("error", f"Complaint {complaint_id} not found"))
+        return {"success": False, "data": None, "error": str(exc)}
 
 
-async def remove_complaint(complaint_id: str) -> None:
+async def remove_complaint(complaint_id: str) -> AgentResult:
     try:
         async with Client(settings.complaint_manager_agent_url) as client:
             response = await client.call_tool(
                 "delete_complaint",
                 {"data": {"complaint_id": complaint_id}},
             )
+        raw_results = response.structured_content or {}
+        if not raw_results.get("success"):
+            return {"success": False, "data": None, "error": raw_results.get("error", f"Complaint {complaint_id} not found")}
+        return {"success": True, "data": None, "error": None}
     except Exception as exc:
-        raise AgentConnectionError(f"complaint_manager_agent unreachable: {exc}") from exc
-
-    raw_payload = response.structured_content or {}
-    if not raw_payload.get("success"):
-        raise NoDataFoundError(raw_payload.get("error", f"Complaint {complaint_id} not found"))
+        return {"success": False, "data": None, "error": str(exc)}

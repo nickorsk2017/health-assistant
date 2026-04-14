@@ -7,13 +7,13 @@ from schemas.device_schema import (
     DeviceRecordSchema,
     RemoveDeviceResponseSchema,
 )
-from services.exceptions import AgentConnectionError, NoDataFoundError
+from services.agent_result import AgentResult
 
 
-async def register_device(data: AddDeviceRequestSchema) -> AddDeviceResponseSchema:
+async def register_device(data: AddDeviceRequestSchema) -> AgentResult:
     try:
         async with Client(settings.device_orchestrator_agent_url) as client:
-            result = await client.call_tool(
+            response = await client.call_tool(
                 "add_device",
                 {
                     "data": {
@@ -23,52 +23,53 @@ async def register_device(data: AddDeviceRequestSchema) -> AddDeviceResponseSche
                     }
                 },
             )
+        raw_results = response.structured_content or {}
+        if not raw_results.get("success"):
+            return {"success": False, "data": None, "error": "device_orchestrator_agent returned failure on add_device"}
+        return {
+            "success": True,
+            "data": AddDeviceResponseSchema(
+                success=True,
+                device_id=raw_results.get("device_id", ""),
+            ),
+            "error": None,
+        }
     except Exception as exc:
-        raise AgentConnectionError(f"device_orchestrator_agent unreachable: {exc}") from exc
-
-    payload = result.structured_content or {}
-    if not payload.get("success"):
-        raise AgentConnectionError("device_orchestrator_agent returned failure on add_device")
-
-    return AddDeviceResponseSchema(
-        success=True,
-        device_id=payload.get("device_id", ""),
-    )
+        return {"success": False, "data": None, "error": str(exc)}
 
 
-async def delete_device(device_id: str) -> RemoveDeviceResponseSchema:
+async def delete_device(device_id: str) -> AgentResult:
     try:
         async with Client(settings.device_orchestrator_agent_url) as client:
-            result = await client.call_tool(
+            response = await client.call_tool(
                 "remove_device",
                 {"data": {"device_id": device_id}},
             )
+        raw_results = response.structured_content or {}
+        if not raw_results.get("success"):
+            return {"success": False, "data": None, "error": raw_results.get("error", f"Device {device_id} not found")}
+        return {"success": True, "data": RemoveDeviceResponseSchema(success=True), "error": None}
     except Exception as exc:
-        raise AgentConnectionError(f"device_orchestrator_agent unreachable: {exc}") from exc
-
-    payload = result.structured_content or {}
-    if not payload.get("success"):
-        raise NoDataFoundError(payload.get("error", f"Device {device_id} not found"))
-
-    return RemoveDeviceResponseSchema(success=True)
+        return {"success": False, "data": None, "error": str(exc)}
 
 
-async def fetch_patient_devices(user_id: str) -> list[DeviceRecordSchema]:
+async def fetch_patient_devices(user_id: str) -> AgentResult:
     try:
         async with Client(settings.device_orchestrator_agent_url) as client:
-            result = await client.call_tool(
+            response = await client.call_tool(
                 "get_patient_devices",
                 {"user_id": user_id},
             )
+        raw_results = response.structured_content
+        devices_collection = (
+            raw_results if isinstance(raw_results, list)
+            else raw_results.get("result", []) if isinstance(raw_results, dict)
+            else []
+        )
+        return {
+            "success": True,
+            "data": [DeviceRecordSchema(**device) for device in devices_collection],
+            "error": None,
+        }
     except Exception as exc:
-        raise AgentConnectionError(f"device_orchestrator_agent unreachable: {exc}") from exc
-
-    payload = result.structured_content
-    if isinstance(payload, list):
-        records = payload
-    elif isinstance(payload, dict):
-        records = payload.get("result", [])
-    else:
-        records = []
-
-    return [DeviceRecordSchema(**r) for r in records]
+        return {"success": False, "data": [], "error": str(exc)}
