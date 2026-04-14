@@ -2,10 +2,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    visit_doctor_agent_url: str
-    consilium_agent_url: str
+    client_history_agent_url: str
+    doctors_agent_url: str
     gp_synthesis_agent_url: str
-    analysis_agent_url: str
+    labs_agent_url: str
     user_service_url: str
     device_orchestrator_agent_url: str
     complaint_manager_agent_url: str

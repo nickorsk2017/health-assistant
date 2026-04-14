@@ -37,8 +37,7 @@ export const useAppointmentStore = create<State>((set, get) => ({
     set({ isCreating: true, createError: null });
     try {
       await AppointmentService.create(form);
-      const userId = get().appointments[0]?.user_id ?? "";
-      await get().fetchAppointments(userId);
+      await get().fetchAppointments(form.user_id);
       set({ isCreating: false });
       return true;
     } catch (err) {

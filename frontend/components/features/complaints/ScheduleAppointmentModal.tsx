@@ -47,6 +47,7 @@ export default function ScheduleAppointmentModal({ isOpen, complaint, onClose }:
     if (!appointmentDate || !doctorType) return;
     const ok = await createAppointment({
       complaint_id: complaint.complaint_id,
+      user_id: complaint.user_id,
       appointment_date: appointmentDate,
       doctor_type: doctorType,
       problem_notes: problemNotes.trim(),

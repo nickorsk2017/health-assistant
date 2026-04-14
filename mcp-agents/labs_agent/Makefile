@@ -2,10 +2,10 @@
 
 dev:
 	make kill-port
-	uv run patient_analysis_agent
+	uv run labs_agent
 
 build:
-	docker build -t patient_analysis_agent .
+	docker build -t labs_agent .
 
 inspect:
 	make kill-inspector
@@ -13,7 +13,7 @@ inspect:
 
 inspect-docker:
 	make kill-inspector
-	npx @modelcontextprotocol/inspector docker run -i --rm --env-file .env patient_analysis_agent
+	npx @modelcontextprotocol/inspector docker run -i --rm --env-file .env labs_agent
 
 kill-inspector:
 	kill -9 $$(lsof -t -i :6304 -i :6305) 2>/dev/null || true

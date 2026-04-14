@@ -26,7 +26,7 @@ async def add_complaint(body: CreateComplaintSchema) -> ComplaintRecordSchema:
 
 
 @router.get("", response_model=list[ComplaintRecordSchema])
-async def list_complaints(user_id: str = Query(default="")) -> list[ComplaintRecordSchema]:
+async def list_complaints(user_id: str = Query(min_length=1)) -> list[ComplaintRecordSchema]:
     try:
         return await fetch_complaints(user_id)
     except AgentConnectionError as exc:

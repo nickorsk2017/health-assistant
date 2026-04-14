@@ -9,16 +9,15 @@ from services.exceptions import AgentConnectionError, NoDataFoundError
 async def fetch_gp_consultation(user_id: str, start_date: str) -> GPConsultationSchema:
     try:
         analyses = await fetch_analyses(user_id, start_date)
-        analyses_text = [r.analysis for r in analyses]
-        
+        analyses_text = [record.analysis for record in analyses]
     except AgentConnectionError as exc:
-        raise AgentConnectionError(f"patient_analysis_agent unreachable during diagnosis: {exc}") from exc
+        raise AgentConnectionError(f"labs_agent unreachable during diagnosis: {exc}") from exc
     except NoDataFoundError:
         analyses_text = []
 
     try:
         async with Client(settings.gp_synthesis_agent_url) as client:
-            result = await client.call_tool(
+            response = await client.call_tool(
                 "get_final_gp_consultation",
                 {
                     "data": {
@@ -31,10 +30,9 @@ async def fetch_gp_consultation(user_id: str, start_date: str) -> GPConsultation
     except Exception as exc:
         raise AgentConnectionError(f"gp_synthesis_agent unreachable: {exc}") from exc
 
-    data = result.structured_content or {}
+    raw_payload = response.structured_content or {}
 
-
-    if not data:
+    if not raw_payload:
         raise NoDataFoundError(f"No GP consultation found for user {user_id}")
 
-    return GPConsultationSchema(**data)
+    return GPConsultationSchema(**raw_payload)

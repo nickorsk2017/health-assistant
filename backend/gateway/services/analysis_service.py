@@ -15,8 +15,8 @@ from services.exceptions import AgentConnectionError, NoDataFoundError
 
 async def record_analysis(data: AnalysisRequestSchema) -> AnalysisResponseSchema:
     try:
-        async with Client(settings.analysis_agent_url) as client:
-            result = await client.call_tool(
+        async with Client(settings.labs_agent_url) as client:
+            response = await client.call_tool(
                 "add_patient_analysis",
                 {
                     "data": {
@@ -27,36 +27,36 @@ async def record_analysis(data: AnalysisRequestSchema) -> AnalysisResponseSchema
                 },
             )
     except Exception as exc:
-        raise AgentConnectionError(f"patient_analysis_agent unreachable: {exc}") from exc
+        raise AgentConnectionError(f"labs_agent unreachable: {exc}") from exc
 
-    payload = result.structured_content or {}
-    response_data = payload.get("result", payload)
+    raw_payload = response.structured_content or {}
+    analysis_data = raw_payload.get("result", raw_payload)
 
-    return AnalysisResponseSchema(success=response_data.get("success", False))
+    return AnalysisResponseSchema(success=analysis_data.get("success", False))
 
 
 async def fetch_analyses(user_id: str, start_date: str) -> list[AnalysisRecordSchema]:
     try:
-        async with Client(settings.analysis_agent_url) as client:
-            result = await client.call_tool(
+        async with Client(settings.labs_agent_url) as client:
+            response = await client.call_tool(
                 "get_patient_analyses",
                 {"data": {"user_id": user_id, "start_date": start_date}},
             )
     except Exception as exc:
-        raise AgentConnectionError(f"patient_analysis_agent unreachable: {exc}") from exc
+        raise AgentConnectionError(f"labs_agent unreachable: {exc}") from exc
 
-    payload = result.structured_content or {}
-    records = payload.get("result", [])
+    raw_payload = response.structured_content or {}
+    analyses_list = raw_payload.get("result", [])
 
-    return [AnalysisRecordSchema(**r) for r in records]
+    return [AnalysisRecordSchema(**analysis) for analysis in analyses_list]
 
 
 async def update_analysis(
     analysis_id: str, data: UpdateAnalysisSchema
 ) -> MutateAnalysisResponseSchema:
     try:
-        async with Client(settings.analysis_agent_url) as client:
-            result = await client.call_tool(
+        async with Client(settings.labs_agent_url) as client:
+            response = await client.call_tool(
                 "update_analysis",
                 {
                     "data": {
@@ -67,32 +67,32 @@ async def update_analysis(
                 },
             )
     except Exception as exc:
-        raise AgentConnectionError(f"patient_analysis_agent unreachable: {exc}") from exc
+        raise AgentConnectionError(f"labs_agent unreachable: {exc}") from exc
 
-    payload = result.structured_content or {}
-    response_data = payload.get("result", payload)
+    raw_payload = response.structured_content or {}
+    analysis_data = raw_payload.get("result", raw_payload)
 
-    if not response_data.get("success"):
-        raise NoDataFoundError(response_data.get("error", f"Analysis {analysis_id} not found"))
+    if not analysis_data.get("success"):
+        raise NoDataFoundError(analysis_data.get("error", f"Analysis {analysis_id} not found"))
 
     return MutateAnalysisResponseSchema(success=True)
 
 
 async def delete_analysis(analysis_id: str) -> MutateAnalysisResponseSchema:
     try:
-        async with Client(settings.analysis_agent_url) as client:
-            result = await client.call_tool(
+        async with Client(settings.labs_agent_url) as client:
+            response = await client.call_tool(
                 "delete_analysis",
                 {"data": {"analysis_id": analysis_id}},
             )
     except Exception as exc:
-        raise AgentConnectionError(f"patient_analysis_agent unreachable: {exc}") from exc
+        raise AgentConnectionError(f"labs_agent unreachable: {exc}") from exc
 
-    payload = result.structured_content or {}
-    response_data = payload.get("result", payload)
+    raw_payload = response.structured_content or {}
+    analysis_data = raw_payload.get("result", raw_payload)
 
-    if not response_data.get("success"):
-        raise NoDataFoundError(response_data.get("error", f"Analysis {analysis_id} not found"))
+    if not analysis_data.get("success"):
+        raise NoDataFoundError(analysis_data.get("error", f"Analysis {analysis_id} not found"))
 
     return MutateAnalysisResponseSchema(success=True)
 
@@ -101,18 +101,18 @@ async def create_analyses_from_prompt(
     data: AnalysisByPromptRequestSchema,
 ) -> AnalysisByPromptResponseSchema:
     try:
-        async with Client(settings.analysis_agent_url) as client:
-            result = await client.call_tool(
+        async with Client(settings.labs_agent_url) as client:
+            response = await client.call_tool(
                 "create_analyses_from_prompt",
                 {"data": {"user_id": data.user_id, "prompt": data.prompt}},
             )
     except Exception as exc:
-        raise AgentConnectionError(f"patient_analysis_agent unreachable: {exc}") from exc
+        raise AgentConnectionError(f"labs_agent unreachable: {exc}") from exc
 
-    payload = result.structured_content or {}
-    response_data = payload.get("result", payload)
+    raw_payload = response.structured_content or {}
+    analysis_data = raw_payload.get("result", raw_payload)
 
     return AnalysisByPromptResponseSchema(
-        success=response_data.get("success", False),
-        list_missing_analysis=response_data.get("list_missing_analysis", []),
+        success=analysis_data.get("success", False),
+        list_missing_analysis=analysis_data.get("list_missing_analysis", []),
     )

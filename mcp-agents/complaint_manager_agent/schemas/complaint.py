@@ -19,12 +19,13 @@ class UpsertComplaintRequest(BaseModel):
 class UpsertComplaintResponse(BaseModel):
     success: bool
     complaint_id: str
+    complaint: "ComplaintRecord | None" = None
 
 
 class GetComplaintsRequest(BaseModel):
     user_id: str = Field(
-        default="",
-        description="Patient UUID to filter by. Leave empty to fetch all complaints (doctor view).",
+        min_length=1,
+        description="Patient UUID to filter complaints by.",
     )
 
 
@@ -48,3 +49,6 @@ class MutateComplaintResponse(BaseModel):
 
 class DeleteComplaintRequest(BaseModel):
     complaint_id: str = Field(description="UUID of the complaint to delete.")
+
+
+UpsertComplaintResponse.model_rebuild()

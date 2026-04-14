@@ -2,8 +2,7 @@ const BASE = `${process.env.NEXT_PUBLIC_API_URL}/complaints`;
 
 export class ComplaintService {
   static async getAll(userId: string): Promise<Entity.Complaint[]> {
-    const url = userId ? `${BASE}?user_id=${encodeURIComponent(userId)}` : BASE;
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await fetch(`${BASE}?user_id=${encodeURIComponent(userId)}`, { cache: "no-store" });
     if (!res.ok) throw new Error(`ComplaintService.getAll failed: ${res.status}`);
     return res.json();
   }
@@ -18,11 +17,15 @@ export class ComplaintService {
     return res.json();
   }
 
-  static async update(complaintId: string, form: Entity.UpdateComplaint): Promise<Entity.Complaint> {
+  static async update(
+    complaintId: string,
+    userId: string,
+    form: Entity.UpdateComplaint,
+  ): Promise<Entity.Complaint> {
     const res = await fetch(`${BASE}/${complaintId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ user_id: userId, ...form }),
     });
     if (!res.ok) throw new Error(`ComplaintService.update failed: ${res.status}`);
     return res.json();

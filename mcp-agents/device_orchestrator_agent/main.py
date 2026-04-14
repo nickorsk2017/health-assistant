@@ -65,7 +65,6 @@ async def add_device(data: AddDeviceRequest) -> dict:
         diagnosis_mock: Optional diagnosis name used to generate condition-specific
             synthetic data (e.g. 'Pheochromocytoma'). Omit for healthy baseline.
     """
-    print("Received add_device request:", data)
     result = await _add_device(data)
     return result.model_dump()
 
@@ -90,10 +89,6 @@ async def get_patient_devices(user_id: str) -> list[dict]:
     """
     devices = await _get_patient_devices(user_id)
     return [d.model_dump() for d in devices]
-
-
-def run() -> None:
-    mcp.run(transport="streamable-http", host=settings.mcp_host, port=settings.mcp_port)
 
 
 def run() -> None:

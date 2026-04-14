@@ -46,12 +46,13 @@ async def upsert_complaint(data: UpsertComplaintRequest) -> dict:
 
 @mcp.tool(name="get_complaints")
 async def get_complaints(data: GetComplaintsRequest) -> list[dict]:
-    """Retrieve complaints, optionally filtered by patient.
+    """Retrieve complaints for a specific patient.
 
     Args:
-        user_id: Filter complaints to a specific patient. Leave empty to fetch all (doctor view).
+        user_id: Patient UUID used to scope complaints.
     """
     records = await _get_complaints(data)
+
     return [r.model_dump() for r in records]
 
 

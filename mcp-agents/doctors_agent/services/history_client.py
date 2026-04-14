@@ -7,9 +7,9 @@ from config import settings
 
 class HistoryClient:
     async def fetch(self, user_id: str, start_date: str) -> list[dict]:
-        logger.info(f"Connecting to visit_doctor_agent at {settings.visit_doctor_agent_url}")
+        logger.info(f"Connecting to client_history_agent at {settings.client_history_agent_url}")
 
-        async with Client(settings.visit_doctor_agent_url) as client:
+        async with Client(settings.client_history_agent_url) as client:
             result = await client.call_tool(
                 "get_doctor_visits_history",
                 {

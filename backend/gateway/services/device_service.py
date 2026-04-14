@@ -12,7 +12,6 @@ from services.exceptions import AgentConnectionError, NoDataFoundError
 
 async def register_device(data: AddDeviceRequestSchema) -> AddDeviceResponseSchema:
     try:
-        print("Attempting to connect to device_orchestrator_agent at", settings.device_orchestrator_agent_url)
         async with Client(settings.device_orchestrator_agent_url) as client:
             result = await client.call_tool(
                 "add_device",

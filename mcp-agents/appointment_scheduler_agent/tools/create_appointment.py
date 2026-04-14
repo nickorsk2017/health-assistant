@@ -16,6 +16,12 @@ async def create_appointment(request: CreateAppointmentRequest) -> CreateAppoint
         return CreateAppointmentResponse(
             success=False, error=f"Invalid complaint_id: {request.complaint_id}"
         )
+    try:
+        user_id = uuid.UUID(request.user_id)
+    except ValueError:
+        return CreateAppointmentResponse(
+            success=False, error=f"Invalid user_id: {request.user_id}"
+        )
 
     try:
         appointment_date = datetime.fromisoformat(request.appointment_date)
@@ -31,6 +37,7 @@ async def create_appointment(request: CreateAppointmentRequest) -> CreateAppoint
             insert(Appointment).values(
                 id=appointment_id,
                 complaint_id=complaint_id,
+                user_id=user_id,
                 appointment_date=appointment_date,
                 doctor_type=request.doctor_type,
                 problem_notes=request.problem_notes,

@@ -12,6 +12,7 @@ class CreateComplaintSchema(BaseModel):
 
 
 class UpdateComplaintSchema(BaseModel):
+    user_id: str
     problem_health: str
     date_public: str
 

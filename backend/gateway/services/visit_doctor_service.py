@@ -15,8 +15,8 @@ from services.exceptions import AgentConnectionError, NoDataFoundError
 
 async def record_visit(visit: CreateVisitSchema) -> RecordVisitResponseSchema:
     try:
-        async with Client(settings.visit_doctor_agent_url) as client:
-            result = await client.call_tool(
+        async with Client(settings.client_history_agent_url) as client:
+            response = await client.call_tool(
                 "add_visit_doctor",
                 {
                     "data": {
@@ -31,61 +31,64 @@ async def record_visit(visit: CreateVisitSchema) -> RecordVisitResponseSchema:
                 },
             )
     except Exception as exc:
-        raise AgentConnectionError(f"visit_doctor_agent unreachable: {exc}") from exc
+        raise AgentConnectionError(f"client_history_agent unreachable: {exc}") from exc
 
-    data = result.structured_content or {}
+    raw_payload = response.structured_content or {}
 
-    if not data:
-        raise NoDataFoundError("visit_doctor_agent returned empty result")
+    if not raw_payload:
+        raise NoDataFoundError("client_history_agent returned empty result")
 
-    return RecordVisitResponseSchema(success=data.get("success", False), visit_id=data.get("visit_id", ""))
+    return RecordVisitResponseSchema(
+        success=raw_payload.get("success", False),
+        visit_id=raw_payload.get("visit_id", ""),
+    )
 
 
 async def fetch_visit_history(user_id: str, last_date_visit: str) -> list[VisitRecordSchema]:
     try:
-        async with Client(settings.visit_doctor_agent_url) as client:
-            result = await client.call_tool(
+        async with Client(settings.client_history_agent_url) as client:
+            response = await client.call_tool(
                 "get_doctor_visits_history",
                 {"data": {"user_id": user_id, "last_date_visit": last_date_visit, "doctor_type": ""}},
             )
     except Exception as exc:
-        raise AgentConnectionError(f"visit_doctor_agent unreachable: {exc}") from exc
+        raise AgentConnectionError(f"client_history_agent unreachable: {exc}") from exc
 
-    payload = result.structured_content or {}
-    records = payload.get("result", [])
+    raw_payload = response.structured_content or {}
+    visits_list = raw_payload.get("result", [])
 
-    if not records:
+    if not visits_list:
         raise NoDataFoundError(f"No visit history found for user {user_id}")
 
-    return [VisitRecordSchema(**r) for r in records]
+    return [VisitRecordSchema(**visit) for visit in visits_list]
 
 
 async def create_visits_by_prompt(data: VisitsByPromptRequestSchema) -> VisitsByPromptResponseSchema:
     try:
-        async with Client(settings.visit_doctor_agent_url) as client:
-            result = await client.call_tool(
+        async with Client(settings.client_history_agent_url) as client:
+            response = await client.call_tool(
                 "create_visits_from_prompt",
                 {"data": {"user_id": data.user_id, "prompt": data.prompt}},
             )
     except Exception as exc:
-        raise AgentConnectionError(f"visit_doctor_agent unreachable: {exc}") from exc
+        raise AgentConnectionError(f"client_history_agent unreachable: {exc}") from exc
 
-    payload = result.structured_content or {}
-    response_data = payload.get("result", payload)
+    raw_payload = response.structured_content or {}
+    visit_data = raw_payload.get("result", raw_payload)
 
-    if not response_data:
-        raise AgentConnectionError("visit_doctor_agent returned empty result for prompt processing")
+    if not visit_data:
+        raise AgentConnectionError("client_history_agent returned empty result for prompt processing")
 
     return VisitsByPromptResponseSchema(
-        success=response_data.get("success", False),
-        count=response_data.get("count", 0),
+        success=visit_data.get("success", False),
+        count=visit_data.get("count", 0),
     )
 
 
 async def update_visit(visit_id: str, data: UpdateVisitSchema) -> MutateVisitResponseSchema:
     try:
-        async with Client(settings.visit_doctor_agent_url) as client:
-            result = await client.call_tool(
+        async with Client(settings.client_history_agent_url) as client:
+            response = await client.call_tool(
                 "update_visit",
                 {
                     "data": {
@@ -99,31 +102,31 @@ async def update_visit(visit_id: str, data: UpdateVisitSchema) -> MutateVisitRes
                 },
             )
     except Exception as exc:
-        raise AgentConnectionError(f"visit_doctor_agent unreachable: {exc}") from exc
+        raise AgentConnectionError(f"client_history_agent unreachable: {exc}") from exc
 
-    payload = result.structured_content or {}
-    response_data = payload.get("result", payload)
+    raw_payload = response.structured_content or {}
+    visit_data = raw_payload.get("result", raw_payload)
 
-    if not response_data.get("success"):
-        raise NoDataFoundError(response_data.get("error", f"Visit {visit_id} not found"))
+    if not visit_data.get("success"):
+        raise NoDataFoundError(visit_data.get("error", f"Visit {visit_id} not found"))
 
     return MutateVisitResponseSchema(success=True)
 
 
 async def delete_visit(visit_id: str) -> MutateVisitResponseSchema:
     try:
-        async with Client(settings.visit_doctor_agent_url) as client:
-            result = await client.call_tool(
+        async with Client(settings.client_history_agent_url) as client:
+            response = await client.call_tool(
                 "delete_visit",
                 {"data": {"visit_id": visit_id}},
             )
     except Exception as exc:
-        raise AgentConnectionError(f"visit_doctor_agent unreachable: {exc}") from exc
+        raise AgentConnectionError(f"client_history_agent unreachable: {exc}") from exc
 
-    payload = result.structured_content or {}
-    response_data = payload.get("result", payload)
+    raw_payload = response.structured_content or {}
+    visit_data = raw_payload.get("result", raw_payload)
 
-    if not response_data.get("success"):
-        raise NoDataFoundError(response_data.get("error", f"Visit {visit_id} not found"))
+    if not visit_data.get("success"):
+        raise NoDataFoundError(visit_data.get("error", f"Visit {visit_id} not found"))
 
     return MutateVisitResponseSchema(success=True)

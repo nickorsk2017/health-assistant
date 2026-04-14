@@ -7,18 +7,18 @@ from services.exceptions import AgentConnectionError, NoDataFoundError
 
 async def fetch_consilium(user_id: str, start_date: str) -> list[SpecialistFindingSchema]:
     try:
-        async with Client(settings.consilium_agent_url) as client:
-            result = await client.call_tool(
+        async with Client(settings.doctors_agent_url) as client:
+            response = await client.call_tool(
                 "run_medical_consilium",
                 {"data": {"user_id": user_id, "start_date": start_date}},
             )
     except Exception as exc:
-        raise AgentConnectionError(f"consilium_agent unreachable: {exc}") from exc
+        raise AgentConnectionError(f"doctors_agent unreachable: {exc}") from exc
 
-    payload = result.structured_content or {}
-    findings = payload.get("result", [])
+    raw_payload = response.structured_content or {}
+    findings_list = raw_payload.get("result", [])
 
-    if not findings:
+    if not findings_list:
         raise NoDataFoundError(f"No consilium findings for user {user_id}")
 
-    return [SpecialistFindingSchema(**f) for f in findings]
+    return [SpecialistFindingSchema(**finding) for finding in findings_list]

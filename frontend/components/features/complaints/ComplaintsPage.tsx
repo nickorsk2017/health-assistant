@@ -9,12 +9,12 @@ export default function ComplaintsPage() {
   const { selectedPatientId } = usePatientStore();
 
   const isDoctor = role === "doctor";
-  const userId = isDoctor ? "" : (selectedPatientId ?? "");
+  const userId = selectedPatientId ?? "";
 
-  if (!isDoctor && !selectedPatientId) {
+  if (!selectedPatientId) {
     return (
       <div className="flex items-center justify-center py-20 text-sm text-slate-500">
-        No patient selected.
+        Select a patient to view complaints.
       </div>
     );
   }

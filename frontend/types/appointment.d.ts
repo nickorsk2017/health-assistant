@@ -11,6 +11,7 @@ declare namespace Entity {
 
   type CreateAppointment = {
     complaint_id: string;
+    user_id: string;
     appointment_date: string;
     doctor_type: string;
     problem_notes: string;

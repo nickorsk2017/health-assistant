@@ -15,7 +15,6 @@ router = APIRouter(prefix="/api/v1/devices", tags=["devices"])
 @router.post("", response_model=AddDeviceResponseSchema, status_code=201)
 async def create_device(body: AddDeviceRequestSchema) -> AddDeviceResponseSchema:
     try:
-        print("Received request to create device for user_id:", body.user_id)
         return await register_device(body)
     except AgentConnectionError as exc:
         raise HTTPException(status_code=503, detail=str(exc))

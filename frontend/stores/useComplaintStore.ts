@@ -52,7 +52,7 @@ export const useComplaintStore = create<State>((set, get) => ({
   updateComplaint: async (complaintId, form, userId) => {
     set({ isSubmitting: true, submitError: null });
     try {
-      await ComplaintService.update(complaintId, form);
+      await ComplaintService.update(complaintId, userId, form);
       await get().fetchComplaints(userId);
       set({ isSubmitting: false });
       return true;

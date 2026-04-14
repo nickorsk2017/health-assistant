@@ -1,12 +1,12 @@
 """
 Seed script: inserts a 10-visit clinical history for patient Alex Rivera (52 yo)
-into the visit_doctor_agent PostgreSQL database.
+into the client_history_agent PostgreSQL database.
 
 Hidden diagnosis: Primary Hyperparathyroidism — symptoms are deliberately scattered
-across multiple specialties to exercise the medical_consilium_agent's cross-specialty
+across multiple specialties to exercise the doctors_agent's cross-specialty
 reasoning.
 
-Usage (from the visit_doctor_agent directory):
+Usage (from the client_history_agent directory):
     python seeds/seed_clinical_history.py
 
 The script is idempotent when run against an empty table. Running it again will

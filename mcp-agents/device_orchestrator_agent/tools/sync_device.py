@@ -56,7 +56,6 @@ async def sync_device(device: Device) -> bool:
     Returns True if sync succeeded, False otherwise.
     """
     try:
-        print(f"Syncing device {device.id} (type: {device.type_device}) for user {device.user_id}")
         if device.type_device == "oura_ring":
             records = await _call_oura_agent(device)
         elif device.type_device == "apple_health":

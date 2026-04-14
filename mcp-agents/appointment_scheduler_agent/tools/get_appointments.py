@@ -1,5 +1,5 @@
 from loguru import logger
-from sqlalchemy import select, text
+from sqlalchemy import text
 
 from db.engine import SessionLocal
 from db.models import Appointment
@@ -11,11 +11,10 @@ async def get_appointments(request: GetAppointmentsRequest) -> list[AppointmentR
         if request.user_id:
             rows = await session.execute(
                 text(
-                    "SELECT a.id, a.complaint_id, c.user_id, a.appointment_date, "
+                    "SELECT a.id, a.complaint_id, a.user_id, a.appointment_date, "
                     "a.doctor_type, a.problem_notes, a.created_at "
                     "FROM appointments a "
-                    "JOIN complaints c ON c.id = a.complaint_id "
-                    "WHERE c.user_id = :user_id "
+                    "WHERE a.user_id = :user_id "
                     "ORDER BY a.appointment_date ASC"
                 ),
                 {"user_id": request.user_id},
@@ -23,10 +22,9 @@ async def get_appointments(request: GetAppointmentsRequest) -> list[AppointmentR
         else:
             rows = await session.execute(
                 text(
-                    "SELECT a.id, a.complaint_id, c.user_id, a.appointment_date, "
+                    "SELECT a.id, a.complaint_id, a.user_id, a.appointment_date, "
                     "a.doctor_type, a.problem_notes, a.created_at "
                     "FROM appointments a "
-                    "JOIN complaints c ON c.id = a.complaint_id "
                     "ORDER BY a.appointment_date ASC"
                 )
             )
