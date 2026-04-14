@@ -36,7 +36,7 @@ export default function ConsiliumPage() {
         />
         <Button
           loading={isLoading}
-          onClick={() => fetchConsilium(selectedPatientId, startDate)}
+          onClick={() => fetchConsilium(selectedPatientId!!, startDate)}
           size="lg"
         >
           <Users className="h-4 w-4" />

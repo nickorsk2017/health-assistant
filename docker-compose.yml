@@ -7,6 +7,12 @@ x-hc: &hc
   retries: 5
   start_period: 15s
 
+x-common: &common
+  env_file: _common/.env
+  restart: unless-stopped
+  networks:
+    - medical-network
+
 networks:
   medical-network:
     driver: bridge
@@ -21,17 +27,11 @@ services:
   # ──────────────────────────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+    <<: *common
     volumes:
       - postgres-data:/var/lib/postgresql/data
-    networks:
-      - medical-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -42,20 +42,14 @@ services:
   # ──────────────────────────────────────────────────────────────────────────────
   oura_ring_agent:
     build: ./mcp-agents/oura_ring_agent
-    restart: unless-stopped
-    env_file: .env
-    networks:
-      - medical-network
+    <<: *common
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import socket; socket.create_connection(('localhost', 6330), 2).close()\""]
       <<: *hc
 
   apple_health_agent:
     build: ./mcp-agents/apple_health_agent
-    restart: unless-stopped
-    env_file: .env
-    networks:
-      - medical-network
+    <<: *common
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import socket; socket.create_connection(('localhost', 6331), 2).close()\""]
       <<: *hc
@@ -65,20 +59,14 @@ services:
   # ──────────────────────────────────────────────────────────────────────────────
   doctors_agent:
     build: ./mcp-agents/doctors_agent
-    restart: unless-stopped
-    env_file: .env
-    networks:
-      - medical-network
+    <<: *common
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import socket; socket.create_connection(('localhost', 6333), 2).close()\""]
       <<: *hc
 
   gp_synthesis_agent:
     build: ./mcp-agents/gp_synthesis_agent
-    restart: unless-stopped
-    env_file: .env
-    networks:
-      - medical-network
+    <<: *common
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import socket; socket.create_connection(('localhost', 6334), 2).close()\""]
       <<: *hc
@@ -88,72 +76,47 @@ services:
   # ──────────────────────────────────────────────────────────────────────────────
   client_history_agent:
     build: ./mcp-agents/patiant_history_agent
-    restart: unless-stopped
-    env_file: .env
-    environment:
-      POSTGRES_HOST: postgres
+    <<: *common
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - medical-network
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import socket; socket.create_connection(('localhost', 6332), 2).close()\""]
       <<: *hc
 
   labs_agent:
     build: ./mcp-agents/labs_agent
-    restart: unless-stopped
-    env_file: .env
-    environment:
-      POSTGRES_HOST: postgres
+    <<: *common
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - medical-network
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import socket; socket.create_connection(('localhost', 6444), 2).close()\""]
       <<: *hc
 
   complaint_manager_agent:
     build: ./mcp-agents/complaint_manager_agent
-    restart: unless-stopped
-    env_file: .env
-    environment:
-      POSTGRES_HOST: postgres
+    <<: *common
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - medical-network
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import socket; socket.create_connection(('localhost', 6341), 2).close()\""]
       <<: *hc
 
   appointment_scheduler_agent:
     build: ./mcp-agents/appointment_scheduler_agent
-    restart: unless-stopped
-    env_file: .env
-    environment:
-      POSTGRES_HOST: postgres
+    <<: *common
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - medical-network
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import socket; socket.create_connection(('localhost', 6342), 2).close()\""]
       <<: *hc
 
   devices_agent:
     build: ./mcp-agents/devices_agent
-    restart: unless-stopped
-    env_file: .env
-    environment:
-      POSTGRES_HOST: postgres
-      OURA_RING_AGENT_URL: http://oura_ring_agent:6330/mcp
-      APPLE_HEALTH_AGENT_URL: http://apple_health_agent:6331/mcp
+    <<: *common
     depends_on:
       postgres:
         condition: service_healthy
@@ -161,8 +124,6 @@ services:
         condition: service_started
       apple_health_agent:
         condition: service_started
-    networks:
-      - medical-network
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import socket; socket.create_connection(('localhost', 6340), 2).close()\""]
       <<: *hc
@@ -172,15 +133,7 @@ services:
   # ──────────────────────────────────────────────────────────────────────────────
   master_orchestrator_agent:
     build: ./mcp-agents/master_orchestrator_agent
-    restart: unless-stopped
-    env_file: .env
-    environment:
-      CLIENT_HISTORY_AGENT_URL: http://client_history_agent:6332/mcp
-      LABS_AGENT_URL: http://labs_agent:6444/mcp
-      DOCTORS_AGENT_URL: http://doctors_agent:6333/mcp
-      GP_SYNTHESIS_AGENT_URL: http://gp_synthesis_agent:6334/mcp
-      DEVICE_ORCHESTRATOR_AGENT_URL: http://devices_agent:6340/mcp
-      COMPLAINT_MANAGER_AGENT_URL: http://complaint_manager_agent:6341/mcp
+    <<: *common
     depends_on:
       client_history_agent:
         condition: service_started
@@ -194,8 +147,6 @@ services:
         condition: service_started
       complaint_manager_agent:
         condition: service_started
-    networks:
-      - medical-network
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import socket; socket.create_connection(('localhost', 6350), 2).close()\""]
       <<: *hc
@@ -205,35 +156,17 @@ services:
   # ──────────────────────────────────────────────────────────────────────────────
   user_microservice:
     build: ./backend/user_microservice
-    restart: unless-stopped
-    env_file: .env
-    environment:
-      POSTGRES_HOST: postgres
-      CORS_ORIGINS: '["http://localhost:3000"]'
+    <<: *common
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - medical-network
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8001/docs', timeout=2)\""]
       <<: *hc
 
   gateway:
     build: ./backend/gateway
-    restart: unless-stopped
-    env_file: .env
-    environment:
-      CLIENT_HISTORY_AGENT_URL: http://client_history_agent:6332/mcp
-      DOCTORS_AGENT_URL: http://doctors_agent:6333/mcp
-      GP_SYNTHESIS_AGENT_URL: http://gp_synthesis_agent:6334/mcp
-      LABS_AGENT_URL: http://labs_agent:6444/mcp
-      USER_SERVICE_URL: http://user_microservice:8001
-      DEVICE_ORCHESTRATOR_AGENT_URL: http://devices_agent:6340/mcp
-      COMPLAINT_MANAGER_AGENT_URL: http://complaint_manager_agent:6341/mcp
-      APPOINTMENT_SCHEDULER_AGENT_URL: http://appointment_scheduler_agent:6342/mcp
-      MASTER_ORCHESTRATOR_AGENT_URL: http://master_orchestrator_agent:6350/mcp
-      CORS_ORIGINS: '["http://localhost:3000"]'
+    <<: *common
     ports:
       - "8000:8000"
     depends_on:
@@ -249,8 +182,6 @@ services:
         condition: service_started
       client_history_agent:
         condition: service_started
-    networks:
-      - medical-network
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/docs', timeout=2)\""]
       <<: *hc
@@ -259,15 +190,16 @@ services:
   # FRONTEND
   # ──────────────────────────────────────────────────────────────────────────────
   frontend:
-    build: ./frontend
-    restart: unless-stopped
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    <<: *common
     ports:
       - "3000:3000"
     depends_on:
       gateway:
         condition: service_started
-    networks:
-      - medical-network
     healthcheck:
       test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000', r => process.exit(r.statusCode < 400 ? 0 : 1)).on('error', () => process.exit(1))\""]
       interval: 10s

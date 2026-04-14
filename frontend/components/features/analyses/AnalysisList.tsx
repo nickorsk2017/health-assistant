@@ -94,7 +94,7 @@ export default function AnalysisList() {
     useAnalysisStore();
   const { role } = useRole();
   const fetchAnalysesLabel =
-    role === "patient" ? "Get My Analysis" : "Get Patient Analysis";
+    role === "patient" ? "Get My Analysis" : "Get Patient Analyss";
   const [since, setSince] = useState(() => {
     const d = new Date();
     d.setMonth(d.getMonth() - 6);
@@ -126,7 +126,7 @@ export default function AnalysisList() {
           onChange={setSince}
           className="w-44"
         />
-        <Button loading={isFetching} onClick={() => fetchAnalyses(selectedPatientId!, since)}>
+        <Button loading={isFetching} onClick={() => {if(selectedPatientId) fetchAnalyses(selectedPatientId, since)}}>
           {fetchAnalysesLabel}
         </Button>
       </div>

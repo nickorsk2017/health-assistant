@@ -55,7 +55,7 @@ export default function DiagnosisPage() {
         />
         <Button
           loading={isLoading}
-          onClick={() => fetchDiagnosis(selectedPatientId, startDate)}
+          onClick={() => {if(selectedPatientId) fetchDiagnosis(selectedPatientId, startDate)}}
           size="lg"
         >
           <Stethoscope className="h-4 w-4" />

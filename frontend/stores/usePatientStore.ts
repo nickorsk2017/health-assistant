@@ -4,7 +4,6 @@ import { create } from "zustand";
 
 import { PatientService } from "@/services/PatientService";
 
-const SELECTED_KEY = "health_os_selected_patient_id";
 const PATIENT_KEY = "health_os_patient_id";
 
 type State = {
@@ -33,7 +32,7 @@ export const usePatientStore = create<State>((set) => ({
   init: async () => {
     const storedId =
       typeof window !== "undefined"
-        ? localStorage.getItem(SELECTED_KEY) ?? localStorage.getItem(PATIENT_KEY)
+        ? localStorage.getItem(PATIENT_KEY)
         : null;
     try {
       const patients = await PatientService.getAll();
@@ -47,14 +46,14 @@ export const usePatientStore = create<State>((set) => ({
 
   setSelectedPatientId: (id) => {
     if (typeof window !== "undefined") {
-      localStorage.setItem(SELECTED_KEY, id);
+      localStorage.setItem(PATIENT_KEY, id);
       window.location.reload();
     }
   },
 
   setSelectedPatientIdSilent: (id) => {
     if (typeof window !== "undefined") {
-      localStorage.setItem(SELECTED_KEY, id);
+      localStorage.setItem(PATIENT_KEY, id);
     }
     set({ selectedPatientId: id, isInitialized: true });
   },
@@ -64,7 +63,7 @@ export const usePatientStore = create<State>((set) => ({
     try {
       const patient = await PatientService.create(form);
       if (typeof window !== "undefined") {
-        localStorage.setItem(SELECTED_KEY, patient.id);
+        localStorage.setItem(PATIENT_KEY, patient.id);
         window.location.reload();
       }
     } catch (err) {
@@ -78,7 +77,6 @@ export const usePatientStore = create<State>((set) => ({
       const patient = await PatientService.create(form);
       if (typeof window !== "undefined") {
         localStorage.setItem(PATIENT_KEY, patient.id);
-        localStorage.setItem(SELECTED_KEY, patient.id);
         window.location.reload();
       }
     } catch (err) {
