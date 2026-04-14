@@ -14,4 +14,5 @@ class Patient(Base):
     full_name: Mapped[str] = mapped_column(String(200))
     dob: Mapped[date]
     gender: Mapped[str] = mapped_column(String(10))
+    email: Mapped[str | None] = mapped_column(String(200), nullable=True, unique=True, index=True)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)

@@ -8,6 +8,7 @@ import Button from "@/components/common/Button/Button";
 import Input from "@/components/common/Input/Input";
 import Spinner from "@/components/common/Spinner/Spinner";
 import EditAnalysisModal from "@/components/features/analyses/EditAnalysisModal";
+import { useRole } from "@/contexts/RoleContext";
 import { useAnalysisStore } from "@/stores/useAnalysisStore";
 import { usePatientStore } from "@/stores/usePatientStore";
 import formatDate from "@/utils/formatDate";
@@ -19,7 +20,7 @@ function AnalysisCard({
   onEdit,
 }: {
   record: Entity.AnalysisRecord;
-  onEdit: (r: Entity.AnalysisRecord) => void;
+  onEdit?: (r: Entity.AnalysisRecord) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const text = record.analysis_text ?? "";
@@ -55,14 +56,16 @@ function AnalysisCard({
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-400">{created}</span>
-          <button
-            type="button"
-            onClick={() => onEdit(record)}
-            className="rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600"
-            aria-label="Edit analysis"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-          </button>
+          {onEdit && (
+            <button
+              type="button"
+              onClick={() => onEdit(record)}
+              className="rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600"
+              aria-label="Edit analysis"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </div>
       {text ? (
@@ -89,6 +92,7 @@ export default function AnalysisList() {
   const { selectedPatientId } = usePatientStore();
   const { analyses, isFetching, fetchError, fetchAnalyses, clearFetchError, refreshTrigger } =
     useAnalysisStore();
+  const { role } = useRole();
   const [since, setSince] = useState(() => {
     const d = new Date();
     d.setMonth(d.getMonth() - 6);
@@ -136,7 +140,11 @@ export default function AnalysisList() {
       {!isFetching && sorted.length > 0 && (
         <div className="flex flex-col gap-3">
           {sorted.map((record, i) => (
-            <AnalysisCard key={`${record.analysis_date}-${i}`} record={record} onEdit={setEditingRecord} />
+            <AnalysisCard
+              key={`${record.analysis_date}-${i}`}
+              record={record}
+              onEdit={role === "doctor" ? setEditingRecord : undefined}
+            />
           ))}
         </div>
       )}

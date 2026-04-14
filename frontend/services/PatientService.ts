@@ -5,6 +5,7 @@ type ApiPatient = {
   full_name: string;
   dob: string;
   gender: string;
+  email?: string | null;
 };
 
 function toEntity(p: ApiPatient): Entity.MockPatient {
@@ -32,6 +33,7 @@ export class PatientService {
         full_name: form.name,
         dob: form.date_of_birth,
         gender: form.gender,
+        email: form.email || null,
       }),
     });
     if (!res.ok) throw new Error(`PatientService.create failed: ${res.status}`);

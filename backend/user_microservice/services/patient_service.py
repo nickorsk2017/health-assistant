@@ -5,11 +5,23 @@ from db.models import Patient
 from schemas.patient_schema import CreatePatientSchema
 
 
-async def create_patient(session: AsyncSession, data: CreatePatientSchema) -> Patient:
+async def upsert_patient(session: AsyncSession, data: CreatePatientSchema) -> Patient:
+    if data.email:
+        result = await session.execute(select(Patient).where(Patient.email == data.email))
+        existing = result.scalar_one_or_none()
+        if existing:
+            existing.full_name = data.full_name
+            existing.dob = data.dob
+            existing.gender = data.gender
+            await session.commit()
+            await session.refresh(existing)
+            return existing
+
     patient = Patient(
         full_name=data.full_name,
         dob=data.dob,
         gender=data.gender,
+        email=data.email,
     )
     session.add(patient)
     await session.commit()

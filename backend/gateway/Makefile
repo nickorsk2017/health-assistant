@@ -3,7 +3,7 @@
 install:
 	uv sync
 
-run:
+dev:
 	make kill-port
 	uv run gateway
 

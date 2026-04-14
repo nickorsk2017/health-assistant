@@ -8,11 +8,18 @@ import Button from "@/components/common/Button/Button";
 import Input from "@/components/common/Input/Input";
 import Spinner from "@/components/common/Spinner/Spinner";
 import EditVisitModal from "@/components/features/history/EditVisitModal";
+import { useRole } from "@/contexts/RoleContext";
 import { usePatientStore } from "@/stores/usePatientStore";
 import { useVisitStore } from "@/stores/useVisitStore";
 import formatDate from "@/utils/formatDate";
 
-function VisitRow({ visit, onEdit }: { visit: Entity.VisitRecord; onEdit: (v: Entity.VisitRecord) => void }) {
+function VisitRow({
+  visit,
+  onEdit,
+}: {
+  visit: Entity.VisitRecord;
+  onEdit?: (v: Entity.VisitRecord) => void;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <div className="border-b border-slate-100 last:border-0">
@@ -26,19 +33,29 @@ function VisitRow({ visit, onEdit }: { visit: Entity.VisitRecord; onEdit: (v: En
             {visit.doctor_type.replace("_", " ")}
           </span>
           <span className="text-sm font-medium text-slate-800">{formatDate(visit.visit_at)}</span>
-          <span className="truncate text-sm text-slate-500 max-w-xs">{visit.assessment}</span>
+          <span className="max-w-xs truncate text-sm text-slate-500">{visit.assessment}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span
-            role="button"
-            tabIndex={0}
-            onClick={(e) => { e.stopPropagation(); onEdit(visit); }}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); onEdit(visit); } }}
-            className="rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600"
-            aria-label="Edit visit"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-          </span>
+          {onEdit && (
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(visit);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.stopPropagation();
+                  onEdit(visit);
+                }
+              }}
+              className="rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600"
+              aria-label="Edit visit"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </span>
+          )}
           {open ? (
             <ChevronUp className="h-4 w-4 shrink-0 text-slate-400" />
           ) : (
@@ -67,7 +84,9 @@ function VisitRow({ visit, onEdit }: { visit: Entity.VisitRecord; onEdit: (v: En
 
 export default function HistoryList() {
   const { selectedPatientId } = usePatientStore();
-  const { history, isFetchingHistory, error, fetchHistory, clearError, refreshTrigger } = useVisitStore();
+  const { history, isFetchingHistory, error, fetchHistory, clearError, refreshTrigger } =
+    useVisitStore();
+  const { role } = useRole();
   const [since, setSince] = useState("2024-01-01");
   const [editingVisit, setEditingVisit] = useState<Entity.VisitRecord | null>(null);
 
@@ -75,7 +94,7 @@ export default function HistoryList() {
     if (refreshTrigger > 0 && selectedPatientId) {
       fetchHistory(selectedPatientId, since);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshTrigger]);
 
   return (
@@ -88,7 +107,7 @@ export default function HistoryList() {
           onChange={setSince}
           className="w-44"
         />
-        <Button loading={isFetchingHistory} onClick={() => fetchHistory(selectedPatientId, since)}>
+        <Button loading={isFetchingHistory} onClick={() => fetchHistory(selectedPatientId!, since)}>
           Get Patient History
         </Button>
       </div>
@@ -101,13 +120,17 @@ export default function HistoryList() {
       {!isFetchingHistory && history.length > 0 && (
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
           {history.map((v) => (
-            <VisitRow key={v.visit_id} visit={v} onEdit={setEditingVisit} />
+            <VisitRow
+              key={v.visit_id}
+              visit={v}
+              onEdit={role === "doctor" ? setEditingVisit : undefined}
+            />
           ))}
         </div>
       )}
       {!isFetchingHistory && history.length === 0 && !error && (
-        <p className="text-center text-sm text-slate-400 py-6">
-          No visits loaded. Select a date range and click "Get Patient History".
+        <p className="py-6 text-center text-sm text-slate-400">
+          No visits loaded. Select a date range and click &quot;Get Patient History&quot;.
         </p>
       )}
       {editingVisit && (

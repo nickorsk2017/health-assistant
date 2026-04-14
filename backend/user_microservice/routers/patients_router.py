@@ -20,7 +20,7 @@ async def create_patient(
     body: CreatePatientSchema,
     session: AsyncSession = Depends(get_session),
 ) -> PatientSchema:
-    return await patient_service.create_patient(session, body)
+    return await patient_service.upsert_patient(session, body)
 
 
 @router.get("", response_model=list[PatientSchema])

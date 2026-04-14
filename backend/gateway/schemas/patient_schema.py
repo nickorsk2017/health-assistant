@@ -8,6 +8,7 @@ class CreatePatientSchema(BaseModel):
     full_name: str
     dob: date
     gender: str
+    email: str | None = None
 
 
 class PatientSchema(BaseModel):
@@ -15,4 +16,5 @@ class PatientSchema(BaseModel):
     full_name: str
     dob: date
     gender: str
+    email: str | None = None
     created_at: datetime
