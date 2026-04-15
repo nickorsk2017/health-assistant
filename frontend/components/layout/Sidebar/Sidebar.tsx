@@ -43,7 +43,7 @@ export default function Sidebar() {
 
   return (
     <aside className="flex h-screen w-56 shrink-0 flex-col border-r border-slate-200 bg-white">
-      <div className="flex items-center gap-2 border-b border-slate-200 px-5 py-4">
+      <div className=" min-h-16 flex items-center gap-3 border-b border-slate-200 px-4">
         <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600">
           <Activity className="h-4 w-4 text-white" />
         </div>
