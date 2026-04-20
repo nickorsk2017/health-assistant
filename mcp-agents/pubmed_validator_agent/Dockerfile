@@ -5,7 +5,7 @@ WORKDIR /app
 RUN pip install --no-cache-dir uv
 
 COPY _common/ _common/
-COPY mcp-agents/patiant_history_agent/ .
+COPY mcp-agents/pubmed_validator_agent/ .
 
 RUN uv pip install --system --no-cache .
 

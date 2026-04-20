@@ -30,3 +30,11 @@ class GPConsultation(BaseModel):
             "why the diagnosis was initially missed, and why the chosen treatment plan gives the best outcome."
         )
     )
+    keywords_diagnosis: list[str] = Field(
+        default_factory=list,
+        description=(
+            "2-3 specific medical keyword variants of the primary diagnosis for PubMed search. "
+            "Include the canonical name and clinically distinct subtypes. "
+            "Example: ['Pheochromocytoma', 'Adrenal Paraganglioma', 'Catecholamine-secreting tumor']."
+        ),
+    )

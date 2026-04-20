@@ -79,6 +79,15 @@ services:
       test: ["CMD-SHELL", "python -c \"import socket; socket.create_connection(('localhost', 6334), 2).close()\""]
       <<: *hc
 
+  pubmed_validator_agent:
+    build:
+      context: .
+      dockerfile: mcp-agents/pubmed_validator_agent/Dockerfile
+    <<: *common
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import socket; socket.create_connection(('localhost', 6351), 2).close()\""]
+      <<: *hc
+
   # ──────────────────────────────────────────────────────────────────────────────
   # DATABASE-BACKED AGENTS
   # ──────────────────────────────────────────────────────────────────────────────
@@ -162,6 +171,8 @@ services:
       doctors_agent:
         condition: service_started
       gp_synthesis_agent:
+        condition: service_started
+      pubmed_validator_agent:
         condition: service_started
       devices_agent:
         condition: service_started

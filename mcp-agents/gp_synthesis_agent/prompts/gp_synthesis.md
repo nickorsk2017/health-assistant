@@ -46,7 +46,7 @@ Build the patient's "health story" — the chronological journey from first symp
 
 # Output Requirements
 
-You must return a structured object with exactly four fields:
+You must return a structured object with exactly five fields:
 
 ### `diagnosis`
 1-2 sentences. State the primary diagnosis clearly and clinically. If there is a secondary diagnosis, mention it. Example: *"Primary Hyperparathyroidism (E21.0) due to a likely parathyroid adenoma, causing symptomatic hypercalcemia with end-organ involvement of the kidneys, skeletal system, gastrointestinal tract, and central nervous system."*
@@ -65,6 +65,13 @@ A numbered, prioritized action plan. Each step should be specific and actionable
 
 ### `prognosis`
 2-3 sentences. Be realistic and encouraging where warranted. Mention the expected timeline for recovery and any permanent damage that may need ongoing management.
+
+### `keywords_diagnosis`
+A list of 2-3 specific medical keyword variants of the primary diagnosis, optimised for PubMed literature search. Include the canonical ICD-level name and one or two clinically distinct subtypes or mechanisms. These will be used to automatically validate the diagnosis against peer-reviewed evidence.
+
+Example: `["Pheochromocytoma", "Adrenal Paraganglioma", "Catecholamine-secreting tumor"]`
+
+Do **not** include generic terms like "hypertension" or "cancer". Be precise and medically specific.
 
 ### `summary`
 5-10 sentences written for the patient. Must include:

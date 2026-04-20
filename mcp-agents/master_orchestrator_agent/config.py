@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     labs_agent_url: str = "http://localhost:6444/mcp"
     doctors_agent_url: str = "http://localhost:6333/mcp"
     gp_synthesis_agent_url: str = "http://localhost:6334/mcp"
+    pubmed_validator_agent_url: str = "http://localhost:6351/mcp"
     device_orchestrator_agent_url: str = "http://localhost:6340/mcp"
     complaint_manager_agent_url: str = "http://localhost:6341/mcp"
 

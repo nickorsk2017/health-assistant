@@ -24,3 +24,4 @@ class GPDiagnosisState(TypedDict):
     complaints_error: str | None
     consilium_findings: list[dict]
     consultation: dict
+    validation_result: dict

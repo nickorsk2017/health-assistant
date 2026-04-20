@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from fastmcp import Client
 
 from config import settings
-from _common.schemas.gp_consultation import GPConsultation as GPConsultationSchema
+from _common.schemas.diagnosis import DiagnosisResult as GPConsultationSchema
 from services.agent_result import AgentResult, to_response
 
 

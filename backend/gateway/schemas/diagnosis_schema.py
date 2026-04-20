@@ -1,5 +1,5 @@
-from _common.schemas.gp_consultation import GPConsultation
+from _common.schemas.diagnosis import DiagnosisResult
 
-GPConsultationSchema = GPConsultation
+GPConsultationSchema = DiagnosisResult
 
-__all__ = ["GPConsultation", "GPConsultationSchema"]
+__all__ = ["DiagnosisResult", "GPConsultationSchema"]
